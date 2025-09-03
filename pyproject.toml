@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "JurisPeru Front"
+version = "0.1.0"
+description = "Aplicación para consultar sobre códigos penales, civiles, etc."
+authors = ["Raúl Casanova raul.casanova.03@gmail.com"]
+packages = [{ include = "app", from = "src" }]
+
+[tool.poetry.dependencies]
+python = "3.13.*"
+streamlit = "~1.49.1"
+pytest-playwright = "^0.7.0"
+pydantic-settings = "^2.10.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "~8.4.1"
+black = "~25.1.0"
+ruff = "~0.12.9"
+mypy = "1.17.0"
+pytest-cov = "~6.2.1"
+pre-commit = "~4.3.0"
+types-requests = "~2.32.4.20250809"
+
+[build-system]
+requires = ["poetry-core>=1.5.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+target-version = ["py313"]
+
+[[tool.mypy.overrides]]
+module = "google.*"
+ignore_missing_imports = true
