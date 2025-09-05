@@ -83,7 +83,7 @@ with col2:
 # -------------------------
 # Procesamiento de respuesta cuando el usuario presiona enviar
 # -------------------------
-if enviar:
+if enviar and query:
     st.write("---")
     col_resp, col_ctx = st.columns([2, 1])
 
