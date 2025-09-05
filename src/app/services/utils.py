@@ -24,11 +24,11 @@ def stream_data(query, settings):
             f"{settings.api_url}/ask/", json=payload, stream=True, timeout=300
         ) as r:
             logger.info(f"Received response with status code: {r.status_code}")
-            for chunk in r.iter_content(chunk_size=None):
-                if chunk:
+            for line in r.iter_lines():
+                if line:
                     try:
-                        response = json.loads(chunk.decode("utf-8"))
-                        logger.debug(f"Received chunk: {response}")
+                        response = json.loads(line.decode("utf-8"))
+                        logger.debug(f"Received line: {response}")
                     except json.JSONDecodeError as e:
                         logger.error(f"JSON decode error: {e}")
                         raise InterruptedError(
