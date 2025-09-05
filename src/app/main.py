@@ -1,38 +1,37 @@
 import logging
 import streamlit as st
 
-from app.config import get_settings
-from app.services.utils import stream_data
+from app.config import get_settings, setup_logging
+from app.services.utils import perform_stream_with_retries, wait_until_api_ready
 
 
-# -------------------------
-# Configuración inicial
-# -------------------------
-def setup_logging():
-    settings = get_settings()
-    level = logging.INFO
-
-    if settings.log_level == "ERROR":
-        level = logging.ERROR
-    elif settings.log_level == "DEBUG":
-        level = logging.DEBUG
-
-    logging.basicConfig(
-        level=level,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        handlers=[logging.FileHandler("app.log"), logging.StreamHandler()],
-    )
-
-
+setup_logging()
 logger = logging.getLogger(__name__)
 settings = get_settings()
+
+st.set_page_config(page_title="JurisPeru", page_icon="⚖️", layout="wide")
 logger.info("Settings loaded successfully")
 
-# -------------------------
-# Configuración de página
-# -------------------------
-st.set_page_config(page_title="JurisPeru", page_icon="⚖️", layout="wide")
 
+if "api_ready" not in st.session_state:
+    st.session_state["api_ready"] = False
+    st.session_state["startup_checked"] = False
+
+# Solo ejecutar la comprobación inicial una vez por sesión (o cuando explicitamente quieras reintentar)
+if not st.session_state.get("startup_checked", False):
+    st.session_state["startup_checked"] = True
+    st.subheader("Verificando disponibilidad del API...")
+    ready = wait_until_api_ready(settings, timeout_seconds=60, interval_seconds=5)
+    if ready:
+        st.success("✅ API lista, ya puedes usar la aplicación")
+    else:
+        st.warning(
+            "El servicio backend no responde por ahora. La funcionalidad de consulta estará deshabilitada hasta que se reactive."
+        )
+
+# -------------------------
+# UI principal
+# -------------------------
 st.title("⚖️ JurisPeru")
 st.markdown(
     """
@@ -68,30 +67,38 @@ col1, col2 = st.columns([2, 1])
 with col1:
     st.subheader("📝 Realiza tu consulta")
     query = st.text_area("Escribe tu pregunta aquí", key="query_input", height=120)
-    enviar = st.button("🚀 Enviar pregunta", type="primary", use_container_width=True)
+    enviar = st.button(
+        "🚀 Enviar pregunta",
+        type="primary",
+        use_container_width=True,
+        disabled=not st.session_state.get("api_ready", False),
+    )
 
 with col2:
     st.subheader("❓ Preguntas frecuentes")
     for faq in FAQS:
         st.button(faq, key=faq, on_click=set_query, args=(faq,))
 
+
 # -------------------------
-# Procesamiento de respuesta
+# Procesamiento de respuesta cuando el usuario presiona enviar
 # -------------------------
-if enviar or query:
+if enviar:
     st.write("---")
     col_resp, col_ctx = st.columns([2, 1])
 
     with col_resp:
         st.subheader("📌 Respuesta")
-        try:
-            with st.spinner("Generando respuesta..."):
-                st.write_stream(stream_data(query, settings))
-        except InterruptedError as e:
-            st.error(str(e))
-        except Exception as e:
-            logger.exception(f"Unexpected error: {e}")
-            st.error(f"Unexpected error: {e}")
+        # Ejecutar stream con lógica de retry profesional
+        with st.spinner("Generando respuesta..."):
+            success = perform_stream_with_retries(
+                query, settings, max_wait_seconds=60, interval_seconds=5
+            )
+            if success:
+                st.success("Respuesta completada.")
+            else:
+                # Si falló (ej. no se despertó el API), deshabilitar el botón por seguridad
+                st.session_state["api_ready"] = False
 
     with col_ctx:
         st.subheader("📚 Documentos utilizados")

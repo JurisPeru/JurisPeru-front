@@ -1,3 +1,4 @@
+import logging
 from functools import lru_cache
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -14,7 +15,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     model_config = SettingsConfigDict(
-        env_file=".env.dev",  # NOTE: cambiar en prod
+        env_file=".env.dev",
         env_file_encoding="utf-8",
         env_nested_delimiter="__",
         env_nested_max_split=1,
@@ -24,3 +25,18 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings():
     return Settings()
+
+
+def setup_logging():
+    settings_local = get_settings()
+    level = logging.INFO
+    if settings_local.log_level == "ERROR":
+        level = logging.ERROR
+    elif settings_local.log_level == "DEBUG":
+        level = logging.DEBUG
+
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[logging.FileHandler("app.log"), logging.StreamHandler()],
+    )
