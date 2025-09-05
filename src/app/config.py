@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=".env.dev",  # NOTE: cambiar en prod
         env_file_encoding="utf-8",
         env_nested_delimiter="__",
         env_nested_max_split=1,

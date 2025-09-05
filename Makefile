@@ -19,7 +19,7 @@ coverage:
 	poetry run pytest tests --cov=src --cov-report=html --cov-fail-under=70
 
 run:
-	PYTHONPATH=src/ poetry run streamlit run src/app/main.py --server.address=0.0.0.0 --server.port=7860
+	PYTHONPATH=src/ poetry run streamlit run src/app/main.py --server.address=0.0.0.0 --server.port=7860 --server.headless true
 
 docker-build:
 	docker buildx build -f Dockerfile.prod -t jurisperu-front:0.1.0 .
