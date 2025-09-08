@@ -101,12 +101,12 @@ if enviar and query:
                 st.session_state["api_ready"] = False
 
     with col_ctx:
-        st.subheader("📚 Documentos utilizados")
+        st.subheader("📚 Fuentes utilizadas")
         if "contexts" in st.session_state and st.session_state["contexts"]:
             for i, ctx in enumerate(st.session_state["contexts"], 1):
                 document = ctx.get("document")
                 with st.container():
-                    st.markdown(f"### 🔎 Contexto {i}")
+                    st.markdown(f"### 🔎 Fuente {i}")
                     st.caption(f"📄 **Archivo:** {document.get('source', 'N/A')}")
                     st.caption(
                         f"📑 **Página:** {document.get('page', '?')} / {document.get('total_pages', '?')}"
