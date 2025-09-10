@@ -114,7 +114,6 @@ if enviar and query:
                     score = ctx.get("score")
                     if score is not None:
                         st.caption(f"⭐ **Relevancia:** {score:.3f}")
-                    st.write(document.get("text", ""))
                     st.divider()
         else:
             st.info("No se encontraron documentos relacionados.")
